@@ -4,6 +4,25 @@ import nodemexphbs from 'nodemailer-express-handlebars';
 import nodemailer from 'nodemailer';
 import NswApi from './api';
 
+const ip = process.env.IP || 'localhost'
+const port = process.env.PORT || 3000
+
+const isDev = process.env.NODE_ENV !== 'production';
+
+let config = {
+  ip,
+  port,
+};
+
+if (!isDev) {
+  config = {
+    ip: process.env.IP || '0.0.0.0',
+    port: process.env.PORT || 8080,
+  }
+}
+
+
+
 // Initial data
 const clientId = 'ncCUEfpAhAcJmFsq5FfmLb5Hv4wW70cq';
 const clientSecret = 'An24qg07qCKpwUqG';
@@ -140,7 +159,10 @@ app.get('/', (req, res) => {
   });
 });
 
-app.listen(80, () => {
-  ('Express server started on port 80'); // eslint-disable-line
-});
-
+app.listen(config.port, (error) => {
+  if (error) {
+    console.error(error)
+  } else {
+    console.info(`local: http://${config.ip}:${config.port}`)
+  }
+})

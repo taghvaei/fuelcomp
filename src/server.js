@@ -62,39 +62,6 @@ Api.init((err) => {
         }
       });
 
-      let transporter = nodemailer.createTransport({
-                streamTransport: true,
-                newline: 'windows'
-            });
-
-            if(!isDev) {
-              transporter = nodemailer.createTransport({
-                host: process.env.SMTP_HOST,
-                port: process.env.SMTP_PORT,
-                secure: true, // use TLS
-                auth: {
-                  user: process.env.SMTP_USER,
-                  pass: process.env.SMTP_PASS,
-                }
-              });
-            }
-
-            transporter.use('compile', nodemexphbs({ viewPath: __dirname + '/views' }));
-
-            transporter.sendMail({
-              from: 'info@fuelcomp.com',
-              to: 'taghvaei@live.com',
-              subject: 'Fuel prices changed',
-              template: 'email',
-              context: {
-                stations: stations
-              },
-            }, (err, info) => {
-              // console.log(info.envelope);
-              // console.log(info.messageId);
-              info.message.pipe(process.stdout);
-            });
-
       // console.log('initiated');
     }
 
@@ -161,7 +128,7 @@ Api.init((err) => {
 
             transporter.sendMail({
               from: 'info@fuelcomp.com',
-              to: 'taghvaei@live.com',
+              to: process.env.EMAIL,
               subject: 'Fuel prices changed',
               template: 'email',
               context: {

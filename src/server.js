@@ -83,7 +83,7 @@ Api.init((err) => {
 
             transporter.sendMail({
               from: 'info@fuelcomp.com',
-              to: 'kybargr@gmail.com',
+              to: 'taghvaei@live.com',
               subject: 'Fuel prices changed',
               template: 'email',
               context: {

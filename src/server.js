@@ -21,11 +21,9 @@ if (!isDev) {
   }
 }
 
-
-
 // Initial data
-const clientId = 'ncCUEfpAhAcJmFsq5FfmLb5Hv4wW70cq';
-const clientSecret = 'An24qg07qCKpwUqG';
+const clientId = process.env.CLIENT_ID || 'ncCUEfpAhAcJmFsq5FfmLb5Hv4wW70cq';
+const clientSecret = process.env.CLIENT_SECRET || 'An24qg07qCKpwUqG';
 
 const stationsWhitelist = [63, 322, 327, 854, 1306, 1377];
 const pricesWhitelist = ['E10', 'U91'];
@@ -63,6 +61,39 @@ Api.init((err) => {
           station.varianceClass[price.fueltype] = 'muted';
         }
       });
+
+      let transporter = nodemailer.createTransport({
+                streamTransport: true,
+                newline: 'windows'
+            });
+
+            if(!isDev) {
+              transporter = nodemailer.createTransport({
+                host: process.env.SMTP_HOST,
+                port: process.env.SMTP_PORT,
+                secure: true, // use TLS
+                auth: {
+                  user: process.env.SMTP_USER,
+                  pass: process.env.SMTP_PASS,
+                }
+              });
+            }
+
+            transporter.use('compile', nodemexphbs({ viewPath: __dirname + '/views' }));
+
+            transporter.sendMail({
+              from: 'info@fuelcomp.com',
+              to: 'kybargr@gmail.com',
+              subject: 'Fuel prices changed',
+              template: 'email',
+              context: {
+                stations: stations
+              },
+            }, (err, info) => {
+              // console.log(info.envelope);
+              // console.log(info.messageId);
+              info.message.pipe(process.stdout);
+            });
 
       // console.log('initiated');
     }
@@ -109,17 +140,27 @@ Api.init((err) => {
           });
 
           if (updated) {
-
             let transporter = nodemailer.createTransport({
-                sendmail: true,
-                newline: 'unix',
-                path: '/usr/sbin/sendmail'
+                streamTransport: true,
+                newline: 'windows'
             });
+
+            if(!isDev) {
+              transporter = nodemailer.createTransport({
+                host: process.env.SMTP_HOST,
+                port: process.env.SMTP_PORT,
+                secure: true, // use TLS
+                auth: {
+                  user: process.env.SMTP_USER,
+                  pass: process.env.SMTP_PASS,
+                }
+              });
+            }
 
             transporter.use('compile', nodemexphbs({ viewPath: __dirname + '/views' }));
 
             transporter.sendMail({
-              from: 'info@example.com',
+              from: 'info@fuelcomp.com',
               to: 'taghvaei@live.com',
               subject: 'Fuel prices changed',
               template: 'email',

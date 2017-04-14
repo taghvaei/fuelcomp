@@ -74,7 +74,7 @@ export default class Api {
         headers: {
           apikey: this.clientId,
           transactionid: this.getGuid(),
-          requesttimestamp: moment().utcOffset(600).format('DD/MM/YYYY hh:mm:ss A'),
+          requesttimestamp: moment().utcOffset(10).format('DD/MM/YYYY hh:mm:ss A'),
           Authorization: `Bearer ${this.accessToken}`,
           'Content-Type': 'application/json; charset=utf-8',
         }

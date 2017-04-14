@@ -27,16 +27,13 @@ const stationsWhitelist = [63, 322, 327, 854, 1306, 1377];
 const pricesWhitelist = ['E10', 'U91'];
 const stations = {};
 let stationsForEmail = {};
+let lastApiDate = '';
 
 const Api = new NswApi(config.clientId, config.clientSecret);
 
-let datas;
-
-
 Api.init((err) => {
   Api.getAllFuelPrices((err, data) => {
-
-    datas = Object.assign(data);
+    lastApiDate = moment().utcOffset(10).format('DD/MM/YYYY HH:mm:ss');
 
     if (!err) {
       // Parse stations
@@ -95,9 +92,10 @@ Api.init((err) => {
     // Periodic update
     setInterval(() => {
       Api.getNewFuelPrices((err, data) => {
+        lastApiDate = moment().utcOffset(10).format('DD/MM/YYYY HH:mm:ss');
         if (!err) {
           // Parse prices
-          datas.prices.forEach((price) => {
+          data.prices.forEach((price) => {
             const stationcode = parseInt(price.stationcode, 10);
 
             if (stationsWhitelist.indexOf(stationcode) > -1 && pricesWhitelist.indexOf(price.fueltype) > -1) {
@@ -203,6 +201,7 @@ app.use(express.static('public'))
 app.get('/', (req, res) => {
   res.render('index', {
     stations: stations,
+    date: lastApiDate,
   });
 });
 

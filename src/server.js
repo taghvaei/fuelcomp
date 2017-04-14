@@ -94,15 +94,14 @@ Api.init((err) => {
 
     // Periodic update
     setInterval(() => {
-      // Api.getNewFuelPrices((err, data) => {
+      Api.getNewFuelPrices((err, data) => {
         if (!err) {
           // Parse prices
           datas.prices.forEach((price) => {
             const stationcode = parseInt(price.stationcode, 10);
 
             if (stationsWhitelist.indexOf(stationcode) > -1 && pricesWhitelist.indexOf(price.fueltype) > -1) {
-
-              price.price = price.price + getRandomArbitrary(-5, 3);
+              // price.price = price.price + getRandomArbitrary(-5, 3);
 
               const lastupdated = dateUTCtoSydney(price.lastupdated)
               let variance = parseFloat(price.price) - parseFloat(stations[stationcode].pricesNew[price.fueltype].price);
@@ -182,7 +181,7 @@ Api.init((err) => {
           }
           // console.log('updated');
         }
-      // });
+      });
     }, 1000 * 60 * config.timeout); // Every 20 minutes
 
   });

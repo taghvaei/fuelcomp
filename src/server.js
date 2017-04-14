@@ -142,7 +142,7 @@ Api.init((err) => {
             }
           });
 
-          if (Object.keys(stationsForEmail).length !== 0) {
+          if (Object.keys(stationsForEmail).length > 0) {
             let transporter = nodemailer.createTransport({
                 streamTransport: true,
                 newline: 'windows'

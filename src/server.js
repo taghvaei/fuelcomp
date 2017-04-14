@@ -2,46 +2,55 @@ import express from 'express';
 import exphbs from 'express-handlebars';
 import nodemexphbs from 'nodemailer-express-handlebars';
 import nodemailer from 'nodemailer';
+import moment from 'moment';
+import fs from 'fs';
 import NswApi from './api';
+import config from './config'
 
-const ip = process.env.IP || 'localhost'
-const port = process.env.PORT || 3000
+/**
+ *
+ * @param {String} date - date in format "DD/MM/YYYY HH:mm:ss"
+ * @return {String} - in format "DD/MM/YYYY HH:mm:ss"
+ */
+function dateUTCtoSydney(date) {
+  const dateMatch = date.match(/(\d+)\/(\d+)\/(\d+)\s(\d+:\d+:\d+)/);
+  const isoDate = `${dateMatch[3]}-${dateMatch[2]}-${dateMatch[1]} ${dateMatch[4]}.000+00:00`;
 
-const isDev = process.env.NODE_ENV !== 'production';
-
-let config = {
-  ip,
-  port,
-  timeout: 4,
-};
-
-if (!isDev) {
-  config = {
-    ip: process.env.IP || '0.0.0.0',
-    port: process.env.PORT || 8080,
-    timeout: process.env.UPDATE_TIMEOUT || 20
-  }
+  return moment(isoDate).utcOffset(10).format('DD/MM/YYYY HH:mm:ss');
 }
 
-// Initial data
-const clientId = process.env.CLIENT_ID || 'ncCUEfpAhAcJmFsq5FfmLb5Hv4wW70cq';
-const clientSecret = process.env.CLIENT_SECRET || 'An24qg07qCKpwUqG';
+function getRandomArbitrary(min, max) {
+  return Math.round((Math.floor(Math.random() * (max - min)) + min) * 100.0)/100.0;
+}
 
 const stationsWhitelist = [63, 322, 327, 854, 1306, 1377];
 const pricesWhitelist = ['E10', 'U91'];
 const stations = {};
+let stationsForEmail = {};
 
-const Api = new NswApi(clientId, clientSecret);
+const Api = new NswApi(config.clientId, config.clientSecret);
+
+let datas;
+
 
 Api.init((err) => {
   Api.getAllFuelPrices((err, data) => {
+
+    datas = Object.assign(data);
+
     if (!err) {
       // Parse stations
       data.stations.forEach((station) => {
         const stationcode = parseInt(station.code, 10);
 
         if (stationsWhitelist.indexOf(stationcode) > -1) {
-          stations[stationcode] = station;
+          stations[stationcode] = {
+            ...station,
+            pricesOld: {},
+            pricesNew: {},
+            variance: {},
+            varianceClass: {},
+          };
         }
       });
 
@@ -50,71 +59,99 @@ Api.init((err) => {
         const stationcode = parseInt(price.stationcode, 10);
 
         if (stationsWhitelist.indexOf(stationcode) > -1 && pricesWhitelist.indexOf(price.fueltype) > -1) {
-          const station = stations[stationcode];
-          station.pricesOld || (station.pricesOld = {})
-          station.pricesNew || (station.pricesNew = {})
-          station.variance || (station.variance = {})
-          station.varianceClass || (station.varianceClass = {})
-          station.updated || (station.updated = false)
+          const lastupdated = dateUTCtoSydney(price.lastupdated)
 
-          station.pricesOld[price.fueltype] = price;
-          station.pricesNew[price.fueltype] = price;
-          station.variance[price.fueltype] = 0;
-          station.varianceClass[price.fueltype] = 'muted';
+          const station = {
+            ...stations[stationcode],
+            pricesOld: {
+              ...stations[stationcode].pricesOld,
+              [price.fueltype]: {
+                ...price,
+                lastupdated,
+              },
+            },
+            pricesNew: {
+              ...stations[stationcode].pricesNew,
+              [price.fueltype]: {
+                ...price,
+                lastupdated,
+              },
+            },
+            variance: {
+              ...stations[stationcode].variance,
+              [price.fueltype]: 0,
+            },
+            varianceClass : {
+              ...stations[stationcode].varianceClass,
+              [price.fueltype]: 'muted',
+            },
+          }
+
+          stations[stationcode] = station;
         }
-      });
-
-      // console.log('initiated');
+     });
     }
 
     // Periodic update
     setInterval(() => {
-      Api.getNewFuelPrices((err, data) => {
+      // Api.getNewFuelPrices((err, data) => {
         if (!err) {
-          // Parse stations
-          data.stations.forEach((station) => {
-            const stationcode = parseInt(station.code, 10);
-            station.updated = false;
-
-            if (stationsWhitelist.indexOf(stationcode) > -1) {
-              !stations[stationcode] && (stations[stationcode] = station);
-            }
-          });
-
-          let updated = false;
-
           // Parse prices
-          data.prices.forEach((price) => {
+          datas.prices.forEach((price) => {
             const stationcode = parseInt(price.stationcode, 10);
 
             if (stationsWhitelist.indexOf(stationcode) > -1 && pricesWhitelist.indexOf(price.fueltype) > -1) {
-              const station = stations[stationcode];
-              station.updated = true;
-              updated = true;
 
-              station.pricesOld || (station.pricesOld = {})
-              station.pricesNew || (station.pricesNew = {})
-              station.variance || (station.variance = {})
-              station.varianceClass || (station.varianceClass = {})
+              price.price = price.price + getRandomArbitrary(-5, 3);
 
-              station.pricesOld[price.fueltype] = station.pricesNew[price.fueltype];
-              station.pricesNew[price.fueltype] = price;
-              station.variance[price.fueltype] = parseInt(station.pricesOld[price.fueltype].price, 10) - parseInt(price.price, 10);
-              if (station.variance[price.fueltype] > 0) {
-                station.varianceClass[price.fueltype] = 'success'
-              } else if (station.variance[price.fueltype] < 0) {
-                station.varianceClass[price.fueltype] = 'danger'
+              const lastupdated = dateUTCtoSydney(price.lastupdated)
+              let variance = parseFloat(price.price) - parseFloat(stations[stationcode].pricesNew[price.fueltype].price);
+              variance = Math.round(variance * 100.0) / 100.0;
+
+              let varianceClass = stations[stationcode].varianceClass[price.fueltype];
+              if (variance > 0) {
+                varianceClass = 'success';
+              } else if (variance < 0) {
+                varianceClass = 'danger';
               }
+
+              const station = {
+                ...stations[stationcode],
+                pricesOld: {
+                  ...stations[stationcode].pricesOld,
+                  [price.fueltype]: {
+                    ...stations[stationcode].pricesNew[price.fueltype],
+                  }
+                },
+                pricesNew: {
+                  ...stations[stationcode].pricesNew,
+                  [price.fueltype]: {
+                    ...price,
+                  }
+                },
+                variance: {
+                  ...stations[stationcode].variance,
+                  [price.fueltype]: variance,
+                },
+                varianceClass : {
+                  ...stations[stationcode].varianceClass,
+                  [price.fueltype]: varianceClass,
+                },
+                update: true,
+              };
+
+              stations[stationcode] = station;
+              stationsForEmail[stationcode] = station;
             }
           });
 
-          if (updated) {
+          if (Object.keys(stationsForEmail).length !== 0) {
             let transporter = nodemailer.createTransport({
                 streamTransport: true,
                 newline: 'windows'
             });
 
-            if(!isDev) {
+            if(!config.isDev) {
               transporter = nodemailer.createTransport({
                 host: process.env.SMTP_HOST,
                 port: process.env.SMTP_PORT,
@@ -134,17 +171,18 @@ Api.init((err) => {
               subject: 'Fuel prices changed',
               template: 'email',
               context: {
-                stations: stations
+                stations: stationsForEmail
               },
             }, (err, info) => {
               // console.log(info.envelope);
               // console.log(info.messageId);
+              stationsForEmail = {}; // clear mail list
               info.message.pipe(process.stdout);
             });
           }
           // console.log('updated');
         }
-      });
+      // });
     }, 1000 * 60 * config.timeout); // Every 20 minutes
 
   });

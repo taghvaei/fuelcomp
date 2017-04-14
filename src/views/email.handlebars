@@ -1,7 +1,7 @@
 <div>
   <p>
     Hi there, <br>
-    We notice that below price change has happened 
+    We notice that below price change has happened
   </p>
   <table style="width: 100%">
     <thead>
@@ -23,19 +23,17 @@
     </thead>
     <tbody>
       {{#each stations}}
-        {{#if stations.updated}}
         <tr>
           <th>{{brand}} #{{code}}</th>
-          <td>{{pricesOld.E10.price}}</td>
-          <td>{{pricesNew.E10.price}}</td>
+          <td>{{{pricesOld.E10.price}}}</td>
+          <td>{{{pricesNew.E10.price}}}</td>
           <td>{{pricesNew.E10.lastupdated}}</td>
           <td>{{{variance.E10}}}</td>
-          <td>{{pricesOld.U91.price}}</td>
-          <td>{{pricesNew.U91.price}}</td>
+          <td>{{{pricesOld.U91.price}}}</td>
+          <td>{{{pricesNew.U91.price}}}</td>
           <td>{{pricesNew.U91.lastupdated}}</td>
           <td>{{{variance.U91}}}</td>
         </tr>
-        {{/if}}
       {{/each}}
     </tbody>
   </table>

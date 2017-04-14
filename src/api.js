@@ -50,7 +50,7 @@ export default class Api {
 
   /**
    * Bootstrap function
-   * 
+   *
    * @param {Fucntion} callback - The callback that handles the response.
    * @return {Fucntion} - Returns "error"
    */
@@ -62,7 +62,7 @@ export default class Api {
 
   /**
    * Function to call api method
-   * 
+   *
    * @param {Object} url - Api endpoint
    * @param {Object} args - client arguments
    * @param {Fucntion} callback - The callback that handles the response.
@@ -74,7 +74,7 @@ export default class Api {
         headers: {
           apikey: this.clientId,
           transactionid: this.getGuid(),
-          requesttimestamp: moment().format('DD/MM/YYYY HH:mm:ss A'),
+          requesttimestamp: moment().utcOffset(600).format('DD/MM/YYYY hh:mm:ss A'),
           Authorization: `Bearer ${this.accessToken}`,
           'Content-Type': 'application/json; charset=utf-8',
         }
@@ -89,7 +89,7 @@ export default class Api {
       req.abort();
     });
 
-    //it's usefull to handle request errors to avoid, for example, socket hang up errors on request timeouts 
+    //it's usefull to handle request errors to avoid, for example, socket hang up errors on request timeouts
     req.on('error', function (err) {
       return callback(err);
     });
@@ -97,7 +97,7 @@ export default class Api {
 
   /**
   * Function that gets acces token
-  * 
+  *
   * @param {Fucntion} callback - The callback that handles the response.
   * @return {Fucntion} - Returns "error" and "access_token"
   */
@@ -128,7 +128,7 @@ export default class Api {
 
   /**
    * Function to get all fuel prices
-   * 
+   *
    * @param {Fucntion} callback - The callback that handles the response.
    * @return {Fucntion} - Returns "error" and "data"
    */
@@ -143,7 +143,7 @@ export default class Api {
 
   /**
    * Function to get lates fuel prices since the last call
-   * 
+   *
    * @param {Fucntion} callback - The callback that handles the response.
    * @return {Fucntion} - Returns "error" and "data"
    */

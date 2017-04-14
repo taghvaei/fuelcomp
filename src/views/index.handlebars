@@ -20,12 +20,12 @@
     {{#each stations}}
     <tr>
       <th scope="row">{{brand}} #{{code}}</th>
-      <td>{{pricesOld.E10.price}}</td>
-      <td>{{pricesNew.E10.price}}</td>
+      <td>{{{pricesOld.E10.price}}}</td>
+      <td>{{{pricesNew.E10.price}}}</td>
       <td>{{pricesNew.E10.lastupdated}}</td>
       <td class="text-{{varianceClass.E10}}">{{{variance.E10}}}</td>
-      <td>{{pricesOld.U91.price}}</td>
-      <td>{{pricesNew.U91.price}}</td>
+      <td>{{{pricesOld.U91.price}}}</td>
+      <td>{{{pricesNew.U91.price}}}</td>
       <td>{{pricesNew.U91.lastupdated}}</td>
       <td class="text-{{varianceClass.U91}}">{{{variance.U91}}}</td>
     </tr>

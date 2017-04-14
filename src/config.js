@@ -7,6 +7,7 @@ const basename = `/${process.env.PUBLIC_PATH || ''}`.replace('//', '/')
 
 const config = {
   all: {
+    env: process.env.NODE_ENV || 'development',
     clientId: process.env.CLIENT_ID || 'ncCUEfpAhAcJmFsq5FfmLb5Hv4wW70cq',
     clientSecret: process.env.CLIENT_SECRET || 'An24qg07qCKpwUqG',
     isDev: process.env.NODE_ENV !== 'production',
@@ -24,4 +25,4 @@ const config = {
   },
 }
 
-module.exports = merge(config.all, config[config.all.env])
+export default merge(config.all, config[config.all.env])

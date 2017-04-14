@@ -12,12 +12,14 @@ const isDev = process.env.NODE_ENV !== 'production';
 let config = {
   ip,
   port,
+  timeout: 4,
 };
 
 if (!isDev) {
   config = {
     ip: process.env.IP || '0.0.0.0',
     port: process.env.PORT || 8080,
+    timeout: process.env.UPDATE_TIMEOUT || 20
   }
 }
 
@@ -143,7 +145,7 @@ Api.init((err) => {
           // console.log('updated');
         }
       });
-    }, 1000 * 60 * 20); // Every 20 minutes
+    }, 1000 * 60 * config.timeout); // Every 20 minutes
 
   });
 });

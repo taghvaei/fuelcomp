@@ -101,7 +101,7 @@ Api.init((err) => {
             if (stationsWhitelist.indexOf(stationcode) > -1 && pricesWhitelist.indexOf(price.fueltype) > -1) {
               // price.price = price.price + getRandomArbitrary(-5, 3);
 
-              const lastupdated = dateUTCtoSydney(price.lastupdated)
+              const lastupdated = dateUTCtoSydney(price.lastupdated);
               let variance = parseFloat(price.price) - parseFloat(stations[stationcode].pricesNew[price.fueltype].price);
               variance = Math.round(variance * 100.0) / 100.0;
 
@@ -124,6 +124,7 @@ Api.init((err) => {
                   ...stations[stationcode].pricesNew,
                   [price.fueltype]: {
                     ...price,
+                    lastupdated,
                   }
                 },
                 variance: {

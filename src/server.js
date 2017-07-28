@@ -20,7 +20,7 @@ function dateUTCtoSydney(date) {
 }
 
 function getRandomArbitrary(min, max) {
-  return Math.round((Math.floor(Math.random() * (max - min)) + min) * 100.0)/100.0;
+  return Math.round((Math.floor(Math.random() * (max - min)) + min) * 100.0) / 100.0;
 }
 
 const stationsWhitelist = [63, 322, 327, 854, 1306, 1377];
@@ -78,7 +78,7 @@ Api.init((err) => {
               ...stations[stationcode].variance,
               [price.fueltype]: 0,
             },
-            varianceClass : {
+            varianceClass: {
               ...stations[stationcode].varianceClass,
               [price.fueltype]: 'muted',
             },
@@ -86,7 +86,7 @@ Api.init((err) => {
 
           stations[stationcode] = station;
         }
-     });
+      });
     }
 
     // Periodic update
@@ -131,7 +131,7 @@ Api.init((err) => {
                   ...stations[stationcode].variance,
                   [price.fueltype]: variance,
                 },
-                varianceClass : {
+                varianceClass: {
                   ...stations[stationcode].varianceClass,
                   [price.fueltype]: varianceClass,
                 },
@@ -145,11 +145,11 @@ Api.init((err) => {
 
           if (Object.keys(stationsForEmail).length > 0) {
             let transporter = nodemailer.createTransport({
-                streamTransport: true,
-                newline: 'windows'
+              streamTransport: true,
+              newline: 'windows'
             });
 
-            if(!config.isDev) {
+            if (!config.isDev) {
               transporter = nodemailer.createTransport({
                 host: process.env.SMTP_HOST,
                 port: process.env.SMTP_PORT,
@@ -164,7 +164,8 @@ Api.init((err) => {
             transporter.use('compile', nodemexphbs({ viewPath: __dirname + '/views' }));
 
             transporter.sendMail({
-              from: 'info@fuelcomp.com',
+              // from: 'info@fuelcomp.com',
+              from: 'kybarg@email.ua',
               to: process.env.EMAIL,
               subject: 'Fuel prices changed',
               template: 'email',
@@ -172,13 +173,14 @@ Api.init((err) => {
                 stations: stationsForEmail
               },
             }, (err, info) => {
-              // console.log(info.envelope);
-              // console.log(info.messageId);
               stationsForEmail = {}; // clear mail list
               info.message.pipe(process.stdout);
+              if (error) {
+                console.log(error);
+              }
+              console.log('Message %s sent: %s', info.messageId, info.response);
             });
           }
-          // console.log('updated');
         }
       });
     }, 1000 * 60 * config.timeout); // Every 20 minutes

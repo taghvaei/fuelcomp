@@ -17,7 +17,11 @@ const config = {
     timeout: 0.2,
   },
   test: {},
-  development: {},
+  development: {
+    ip: 'localhost',
+    port: 3000,
+    timeout: 1,
+  },
   production: {
     ip: process.env.IP || '0.0.0.0',
     port: process.env.PORT || 8080,

@@ -120,7 +120,7 @@ export default class Api {
         this.tokenExpireTime = parseInt(data.issued_at, 10) + parseInt(data.expires_in, 10);
 
         // Save credentials to file
-        fs.writeFile('credentials.json', JSON.stringify(data), 'utf8');
+        fs.writeFileSync('credentials.json', JSON.stringify(data), 'utf8');
       }
       return callback(err);
     });

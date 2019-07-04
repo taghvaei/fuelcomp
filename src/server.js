@@ -164,7 +164,7 @@ Api.init((err) => {
             transporter.use('compile', nodemexphbs({ viewPath: __dirname + '/views' }));
 
             transporter.sendMail({
-              from: 'info@fuelcomp.com',
+              from: 'info@bidgroup.com.au',
               to: process.env.EMAIL,
               subject: 'Fuel prices changed',
               template: 'email',

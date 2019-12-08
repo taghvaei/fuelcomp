@@ -84,11 +84,21 @@ var isEdit = false ;
             },
           }
           
-                    for(let x in station.pricesOld){
-            for(let y in station.pricesNew){
-              if(station.pricesOld[x].price!==station.pricesNew[y]);
-              isEdit = true ;
+              for(let x in station.pricesOld) {
+            for (let y in station.pricesNew) {
+              console.log(station.pricesOld[x].price);
+              console.log(station.pricesNew[y].price);
+              console.log("=========================");
+              if (station.pricesOld[x].price !== station.pricesNew[y].price) {
+                isEdit = true;
+                console.log("*******************" );
+                console.log(station.pricesOld[x].price );
+                return ;
+              }
+
+
             }
+          }
 
 
 

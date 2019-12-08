@@ -83,9 +83,19 @@ var isEdit = false ;
               [price.fueltype]: 'muted',
             },
           }
-if(station[price].pricesOld!==station[price].pricesNew){
-    isEdit = true
+          
+                    for(let x in station.pricesOld){
+            for(let y in station.pricesNew){
+              if(station.pricesOld[x].price!==station.pricesNew[y]);
+              isEdit = true ;
+            }
+
+
+
+
+
           }
+
           stations[stationcode] = station;
         }
       });

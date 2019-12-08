@@ -50,7 +50,7 @@ Api.init((err) => {
           };
         }
       });
-
+var isEdit = false ;
       // Parse prices
       data.prices.forEach((price) => {
         const stationcode = parseInt(price.stationcode, 10);
@@ -83,7 +83,9 @@ Api.init((err) => {
               [price.fueltype]: 'muted',
             },
           }
-
+if(station[price].pricesOld!==station[price].pricesNew){
+    isEdit = true
+          }
           stations[stationcode] = station;
         }
       });
@@ -162,7 +164,7 @@ Api.init((err) => {
             }
 
             transporter.use('compile', nodemexphbs({ viewPath: __dirname + '/views' }));
-
+            if(isEdit === true){
             transporter.sendMail({
               from: 'info@bidgroup.com.au',
               to: process.env.EMAIL,
@@ -179,6 +181,7 @@ Api.init((err) => {
               }
               console.log('Message %s sent: %s', info.messageId, info.response);
             });
+          }
           }
         }
       });

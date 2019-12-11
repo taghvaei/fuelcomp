@@ -1,3 +1,4 @@
+
 import express from 'express';
 import exphbs from 'express-handlebars';
 import nodemexphbs from 'nodemailer-express-handlebars';
@@ -37,7 +38,11 @@ Api.init((err) => {
 
     if (!err) {
       // Parse stations
+
+
+
       data.stations.forEach((station) => {
+
         const stationcode = parseInt(station.code, 10);
 
         if (stationsWhitelist.indexOf(stationcode) > -1) {
@@ -50,9 +55,13 @@ Api.init((err) => {
           };
         }
       });
-var isEdit = false ;
+
+
       // Parse prices
       data.prices.forEach((price) => {
+
+        console.log(price);
+        console.log(price.lastupdated);
         const stationcode = parseInt(price.stationcode, 10);
 
         if (stationsWhitelist.indexOf(stationcode) > -1 && pricesWhitelist.indexOf(price.fueltype) > -1) {
@@ -82,28 +91,6 @@ var isEdit = false ;
               ...stations[stationcode].varianceClass,
               [price.fueltype]: 'muted',
             },
-          }
-          
-              for(let x in station.pricesOld) {
-            for (let y in station.pricesNew) {
-              console.log(station.pricesOld[x].price);
-              console.log(station.pricesNew[y].price);
-              console.log("=========================");
-              if (station.pricesOld[x].price !== station.pricesNew[y].price) {
-                isEdit = true;
-                console.log("*******************" );
-                console.log(station.pricesOld[x].price );
-                return ;
-              }
-
-
-            }
-          }
-
-
-
-
-
           }
 
           stations[stationcode] = station;
@@ -159,6 +146,7 @@ var isEdit = false ;
                 },
                 update: true,
               };
+           
 
               stations[stationcode] = station;
               stationsForEmail[stationcode] = station;
@@ -184,7 +172,7 @@ var isEdit = false ;
             }
 
             transporter.use('compile', nodemexphbs({ viewPath: __dirname + '/views' }));
-            if(isEdit === true){
+
             transporter.sendMail({
               from: 'info@bidgroup.com.au',
               to: process.env.EMAIL,
@@ -201,7 +189,6 @@ var isEdit = false ;
               }
               console.log('Message %s sent: %s', info.messageId, info.response);
             });
-          }
           }
         }
       });

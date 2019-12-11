@@ -1,4 +1,3 @@
-
 import express from 'express';
 import exphbs from 'express-handlebars';
 import nodemexphbs from 'nodemailer-express-handlebars';
@@ -7,6 +6,8 @@ import moment from 'moment';
 import fs from 'fs';
 import NswApi from './api';
 import config from './config'
+const equall = require("is-equal-shallow");
+
 
 /**
  *
@@ -27,10 +28,12 @@ function getRandomArbitrary(min, max) {
 const stationsWhitelist = [63, 322, 327, 854, 1306, 1377];
 const pricesWhitelist = ['E10', 'U91'];
 const stations = {};
+const stationUpd ={};
 let stationsForEmail = {};
 let lastApiDate = '';
 
 const Api = new NswApi(config.clientId, config.clientSecret);
+
 
 Api.init((err) => {
   Api.getAllFuelPrices((err, data) => {
@@ -38,11 +41,7 @@ Api.init((err) => {
 
     if (!err) {
       // Parse stations
-
-
-
       data.stations.forEach((station) => {
-
         const stationcode = parseInt(station.code, 10);
 
         if (stationsWhitelist.indexOf(stationcode) > -1) {
@@ -56,12 +55,8 @@ Api.init((err) => {
         }
       });
 
-
       // Parse prices
       data.prices.forEach((price) => {
-
-        console.log(price);
-        console.log(price.lastupdated);
         const stationcode = parseInt(price.stationcode, 10);
 
         if (stationsWhitelist.indexOf(stationcode) > -1 && pricesWhitelist.indexOf(price.fueltype) > -1) {
@@ -91,15 +86,31 @@ Api.init((err) => {
               ...stations[stationcode].varianceClass,
               [price.fueltype]: 'muted',
             },
+          };
+          stations[stationcode] = station;
+
+          if(station.pricesNew){
+            if(station.pricesNew.E10){
+            stations.price+=`${station.pricesNew.E10.price}`;
+          }
+          }
+          if(station.pricesNew){
+            if(station.pricesNew.U91){
+              stations.price +=`${station.pricesNew.U91.price}`;
+            }
           }
 
-          stations[stationcode] = station;
+
+
+
         }
-      });
+      })
+       console.log( stations.price);
     }
 
     // Periodic update
     setInterval(() => {
+      var isEdit = true ;
       Api.getNewFuelPrices((err, data) => {
         lastApiDate = moment().utcOffset(10).format('DD/MM/YYYY HH:mm:ss');
         if (!err) {
@@ -146,49 +157,78 @@ Api.init((err) => {
                 },
                 update: true,
               };
-           
 
-              stations[stationcode] = station;
+              stationUpd[stationcode] = station;
+
+              if(station.pricesNew){
+                if(station.pricesNew.E10){
+                  stationUpd.price+=`${station.pricesNew.E10.price}`;
+                }
+              }
+              if(station.pricesNew){
+                if(station.pricesNew.U91){
+                  stationUpd.price +=`${station.pricesNew.U91.price}`;
+                }
+              }
+
               stationsForEmail[stationcode] = station;
             }
+
           });
+          console.log(stationUpd.price);
 
-          if (Object.keys(stationsForEmail).length > 0) {
-            let transporter = nodemailer.createTransport({
-              streamTransport: true,
-              newline: 'windows'
-            });
+          if(equall(stationUpd.price , stations.price) === false){
+            isEdit = false
+          }
 
-            if (!config.isDev) {
-              transporter = nodemailer.createTransport({
-                host: process.env.SMTP_HOST,
-                port: process.env.SMTP_PORT,
-                secure: true, // use TLS
-                auth: {
-                  user: process.env.SMTP_USER,
-                  pass: process.env.SMTP_PASS,
+          console.log(isEdit);
+
+
+
+
+
+
+
+
+            if(isEdit === false){
+              if (Object.keys(stationsForEmail).length > 0) {
+                let transporter = nodemailer.createTransport({
+                  streamTransport: true,
+                  newline: 'windows'
+                });
+
+                if (!config.isDev) {
+                  transporter = nodemailer.createTransport({
+                    host: process.env.SMTP_HOST,
+                    port: process.env.SMTP_PORT,
+                    secure: true, // use TLS
+                    auth: {
+                      user: process.env.SMTP_USER,
+                      pass: process.env.SMTP_PASS,
+                    }
+                  });
                 }
+
+                transporter.use('compile', nodemexphbs({ viewPath: __dirname + '/views' }));
+              transporter.sendMail({
+                from: 'info@bidgroup.com.au',
+                to: process.env.EMAIL,
+                subject: 'Fuel prices changed',
+                template: 'email',
+                context: {
+                  stations: stationsForEmail
+                },
+              }, (err, info) => {
+                stationsForEmail = {}; // clear mail list
+                info.message.pipe(process.stdout);
+                if (error) {
+                  console.log(error);
+                }
+                console.log('Message %s sent: %s', info.messageId, info.response);
               });
             }
 
-            transporter.use('compile', nodemexphbs({ viewPath: __dirname + '/views' }));
 
-            transporter.sendMail({
-              from: 'info@bidgroup.com.au',
-              to: process.env.EMAIL,
-              subject: 'Fuel prices changed',
-              template: 'email',
-              context: {
-                stations: stationsForEmail
-              },
-            }, (err, info) => {
-              stationsForEmail = {}; // clear mail list
-              info.message.pipe(process.stdout);
-              if (error) {
-                console.log(error);
-              }
-              console.log('Message %s sent: %s', info.messageId, info.response);
-            });
           }
         }
       });

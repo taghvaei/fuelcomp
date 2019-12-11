@@ -180,6 +180,7 @@ Api.init((err) => {
           if(equall(stationUpd.price , stations.price) === false){
             isEdit = false
           }
+          delete stationUpd.price ;
 
           console.log(isEdit);
 

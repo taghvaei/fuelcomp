@@ -182,7 +182,7 @@ Api.init((err) => {
           }
 
           stations.price = stationUpd.price;
-          console.log(stations.price)
+          console.log(stations.price);
 
           delete stationUpd.price ;
 

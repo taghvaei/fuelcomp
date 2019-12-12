@@ -180,6 +180,10 @@ Api.init((err) => {
           if(equall(stationUpd.price , stations.price) === false){
             isEdit = false
           }
+
+          stations.price = stationUpd.price;
+          console.log(stations.price)
+
           delete stationUpd.price ;
 
           console.log(isEdit);
@@ -192,6 +196,8 @@ Api.init((err) => {
 
 
             if(isEdit === false){
+              console.log(Object.keys(stationsForEmail).length);
+
               if (Object.keys(stationsForEmail).length > 0) {
                 let transporter = nodemailer.createTransport({
                   streamTransport: true,
@@ -211,23 +217,24 @@ Api.init((err) => {
                 }
 
                 transporter.use('compile', nodemexphbs({ viewPath: __dirname + '/views' }));
-              transporter.sendMail({
-                from: 'info@bidgroup.com.au',
-                to: process.env.EMAIL,
-                subject: 'Fuel prices changed',
-                template: 'email',
-                context: {
-                  stations: stationsForEmail
-                },
-              }, (err, info) => {
-                stationsForEmail = {}; // clear mail list
-                info.message.pipe(process.stdout);
-                if (error) {
-                  console.log(error);
-                }
-                console.log('Message %s sent: %s', info.messageId, info.response);
-              });
-            }
+
+                transporter.sendMail({
+                  from: 'info@bidgroup.com.au',
+                  to: process.env.EMAIL,
+                  subject: 'Fuel prices changed',
+                  template: 'email',
+                  context: {
+                    stations: stationsForEmail
+                  },
+                }, (err, info) => {
+                  stationsForEmail = {}; // clear mail list
+                  info.message.pipe(process.stdout);
+                  if (error) {
+                    console.log(error);
+                  }
+                  console.log('Message %s sent: %s', info.messageId, info.response);
+                });
+              }
 
 
           }
